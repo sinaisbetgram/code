@@ -96,60 +96,70 @@
   </table>
 
   <script>
-    const token = "8389689778:AAFxqYCPj-w2M5hWhRxuXvRjhvc8zLw7Djw";
+  const token = "8389689778:AAFxqYCPj-w2M5hWhRxuXvRjhvc8zLw7Djw";
 
-    document.getElementById("btnAbrirBot").onclick = () => {
-      const url = `https://api.telegram.org/bot${token}/getUpdates`;
-      window.open(url, "_blank");
-    };
+  document.getElementById("btnAbrirBot").onclick = () => {
+    const url = `https://api.telegram.org/bot${token}/getUpdates`;
+    window.open(url, "_blank");
+  };
 
-    function timestampToDate(ts) {
-      if (!ts) return "";
-      const d = new Date(ts * 1000);
-      return d.toLocaleString("pt-BR", { hour12: false });
-    }
+  function timestampToDate(ts) {
+    if (!ts) return "";
+    const d = new Date(ts * 1000);
+    return d.toLocaleString("pt-BR", { hour12: false });
+  }
 
-    document.getElementById("btnProcessar").onclick = () => {
-      const text = document.getElementById("inputJson").value.trim();
-      if (!text) return alert("Cole o JSON do getUpdates primeiro!");
-      let data;
-      try { data = JSON.parse(text); } 
-      catch (e) { return alert("JSON inválido!"); }
+  document.getElementById("btnProcessar").onclick = () => {
+    const text = document.getElementById("inputJson").value.trim();
+    if (!text) return alert("Cole o JSON do getUpdates primeiro!");
+    let data;
+    try { data = JSON.parse(text); } 
+    catch (e) { return alert("JSON inválido!"); }
 
-      const tbody = document.querySelector("#tabela tbody");
-      tbody.innerHTML = "";
+    const tbody = document.querySelector("#tabela tbody");
+    tbody.innerHTML = "";
 
-      data.result?.forEach(update => {
-        const msg = update.message || update.my_chat_member?.chat;
-        if (!msg || !update.message) return;
+    data.result?.forEach(update => {
+      const msg = update.message;
+      if (!msg) return;
 
-        const id = update.message.message_id || "-";
-        const from = update.message.from?.first_name || "Desconhecido";
-        const text = update.message.text || update.message.caption || "(sem texto)";
-        const date = timestampToDate(update.message.date);
-        const chat = update.message.chat?.title || update.message.chat?.id || "privado";
+      // Detecta imagem ou texto
+      const id = msg.message_id || "-";
+      const from = msg.from?.first_name || "Desconhecido";
+      const text = msg.caption || msg.text || "(sem texto)";
+      const date = timestampToDate(msg.date);
+      const chat = msg.chat?.title || msg.chat?.id || "privado";
 
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${id}</td>
-          <td>${from}</td>
-          <td>${text}</td>
-          <td>${date}</td>
-          <td>${chat}</td>
-          <td><button class="copy" data-id="${id}">Copiar</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
+      // Detecta se tem imagem e gera link para download
+      let extra = "";
+      if (msg.photo && msg.photo.length > 0) {
+        const lastPhoto = msg.photo[msg.photo.length - 1];
+        const photoId = lastPhoto.file_id;
+        extra = `<br><a href="https://api.telegram.org/file/bot${token}/${photoId}" target="_blank" style="color:gold">[📸 Ver imagem]</a>`;
+      }
 
-      // Botão copiar ID
-      document.querySelectorAll("button.copy").forEach(btn => {
-        btn.onclick = () => {
-          navigator.clipboard.writeText(btn.dataset.id);
-          btn.textContent = "✅ Copiado!";
-          setTimeout(() => btn.textContent = "Copiar", 1500);
-        };
-      });
-    };
-  </script>
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${id}</td>
+        <td>${from}</td>
+        <td>${text}${extra}</td>
+        <td>${date}</td>
+        <td>${chat}</td>
+        <td><button class="copy" data-id="${id}">Copiar</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Copiar ID
+    document.querySelectorAll("button.copy").forEach(btn => {
+      btn.onclick = () => {
+        navigator.clipboard.writeText(btn.dataset.id);
+        btn.textContent = "✅ Copiado!";
+        setTimeout(() => btn.textContent = "Copiar", 1500);
+      };
+    });
+  };
+</script>
+
 </body>
 </html>
