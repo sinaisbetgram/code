@@ -1,140 +1,121 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Leitor de Odds Betano v2</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Análise IA - Betgram</title>
 <style>
   body {
-    font-family: "Segoe UI", sans-serif;
     background: #0b1324;
     color: #fff;
+    font-family: monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
     margin: 0;
-    padding: 20px;
-    text-align: center;
   }
+
   h1 {
     color: gold;
+    margin-bottom: 20px;
+    text-align: center;
   }
-  input {
-    width: 90%;
-    max-width: 600px;
-    padding: 10px;
+
+  .box {
+    background: rgba(255, 255, 255, 0.05);
     border: 2px solid gold;
-    border-radius: 8px;
+    border-radius: 10px;
+    padding: 20px;
+    width: 320px;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  }
+
+  label {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #ccc;
+  }
+
+  input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    margin-top: 4px;
     background: #111827;
     color: #fff;
-    font-size: 16px;
   }
+
   button {
-    margin-top: 10px;
-    padding: 10px 20px;
+    width: 100%;
+    margin-top: 20px;
+    padding: 10px;
     background: gold;
+    color: #0b1324;
     border: none;
-    border-radius: 8px;
-    color: #111827;
+    border-radius: 6px;
     font-weight: bold;
     cursor: pointer;
+    transition: all 0.2s ease-in-out;
   }
-  button:hover { background: #facc15; }
-  pre {
-    background: #111827;
-    border: 1px solid #334155;
-    border-radius: 8px;
-    padding: 15px;
-    text-align: left;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    margin-top: 20px;
+
+  button:hover {
+    background: #facc15;
+    transform: scale(1.03);
+  }
+
+  footer {
+    margin-top: 25px;
+    font-size: 12px;
+    color: #888;
   }
 </style>
 </head>
 <body>
-<h1>🏆 Leitor de Odds Betano v2</h1>
-<p>Cole o link completo da partida Betano:</p>
 
-<input id="link" placeholder="https://www.betano.bet.br/...">
-<br>
-<button id="ler">🔍 Ler Página</button>
-<button id="baixar" style="display:none;">💾 Baixar .txt</button>
+<h1>📋 Gerador de Análise IA - Betgram</h1>
 
-<pre id="saida">Aguardando link...</pre>
+<div class="box">
+  <label>🏅 Esporte:</label>
+  <input type="text" id="esporte" placeholder="Ex: Futebol, Basquete, Tênis...">
+
+  <label>⚔️ Times ou Jogadores:</label>
+  <input type="text" id="times" placeholder="Ex: Flamengo x Palmeiras">
+
+  <button onclick="gerarTxt()">Gerar e Baixar TXT</button>
+</div>
+
+<footer>© 2025 Betgram - Inteligência IA de Análise Esportiva</footer>
 
 <script>
-const proxies = [
-  "https://api.allorigins.win/get?url=",
-  "https://corsproxy.io/?",
-  "https://api.codetabs.com/v1/proxy/?quest="
-];
+function gerarTxt() {
+  const esporte = document.getElementById('esporte').value.trim();
+  const times = document.getElementById('times').value.trim();
 
-document.getElementById("ler").addEventListener("click", async () => {
-  const url = document.getElementById("link").value.trim();
-  const saida = document.getElementById("saida");
-  const btnBaixar = document.getElementById("baixar");
-  if (!url) return alert("Cole o link da partida da Betano!");
-
-  saida.textContent = "⏳ Lendo página, aguarde...";
-  btnBaixar.style.display = "none";
-
-  let html = "";
-  for (const proxy of proxies) {
-    try {
-      const resp = await fetch(proxy + encodeURIComponent(url));
-      if (!resp.ok) continue;
-      const data = await resp.text();
-      html = data.includes("{\"contents\"") ? JSON.parse(data).contents : data;
-      if (html.includes("Betano")) break;
-    } catch (e) { console.warn("Proxy falhou:", proxy); }
-  }
-
-  if (!html) {
-    saida.textContent = "❌ Não foi possível acessar a página. A Betano pode estar bloqueando proxies.";
+  if (!esporte || !times) {
+    alert('Preencha o esporte e os times/jogadores.');
     return;
   }
 
-  const doc = new DOMParser().parseFromString(html, "text/html");
+  const texto = 
+`ChatGPT, analise todos os mercados entre ${times} no ${esporte}.
+Identifique os mercados com maior probabilidade de acontecer e informe a odd mínima recomendada
+para que seja uma aposta de valor (exemplo: 'esse mercado é bom se odd for acima de 1.85').`;
 
-  const titulo = doc.querySelector("title")?.textContent?.trim() || "Jogo";
-  const dataJogo = doc.body.textContent.match(/\d{1,2}\s\w+\s\d{4}|\d{1,2}\/\d{1,2}\/\d{4}/)?.[0] || "Data não encontrada";
+  const nomeArquivo = `analise_${esporte.toLowerCase().replace(/\s+/g, '_')}_${times.toLowerCase().replace(/\s+/g, '_').replace(/x/g, 'x')}.txt`;
 
-  const oddsBtns = doc.querySelectorAll('[data-qa="odd-button"]');
-  if (!oddsBtns.length) {
-    saida.textContent = "⚠️ Nenhuma odd encontrada. O conteúdo pode carregar dinamicamente.";
-    return;
-  }
+  const blob = new Blob([texto], { type: 'text/plain' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = nomeArquivo;
+  link.click();
 
-  const mercados = {};
-  oddsBtns.forEach(btn => {
-    const mercado = btn.closest('[data-qa="market-card"]')?.querySelector('[data-qa="market-name"]')?.textContent?.trim()
-      || btn.closest('[data-qa="market-group"]')?.querySelector('[data-qa="market-name"]')?.textContent?.trim()
-      || "Mercado";
-    const nome = btn.querySelector('[data-qa="odd-name"]')?.textContent?.trim()
-      || btn.querySelector("span")?.textContent?.trim() || "Opção";
-    const odd = btn.querySelector('[data-qa="odd-price"]')?.textContent?.trim()
-      || btn.textContent.match(/[0-9]+\.[0-9]+/)?.[0] || "";
-    if (!mercados[mercado]) mercados[mercado] = [];
-    mercados[mercado].push(`${nome}: ${odd}`);
-  });
-
-  let texto = `📄 Odds extraídas de: ${url}\n🏟️ ${titulo}\n📅 ${dataJogo}\n\n`;
-  for (const [mercado, lista] of Object.entries(mercados)) {
-    texto += `🏷️ ${mercado}\n`;
-    lista.forEach(l => texto += `• ${l}\n`);
-    texto += "\n";
-  }
-
-  saida.textContent = texto;
-  btnBaixar.style.display = "inline-block";
-
-  btnBaixar.onclick = () => {
-    const blob = new Blob([texto], { type: "text/plain" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = (titulo.replace(/\s+/g, "_") || "odds") + ".txt";
-    a.click();
-    URL.revokeObjectURL(a.href);
-  };
-});
+  URL.revokeObjectURL(link.href);
+}
 </script>
+
 </body>
 </html>
