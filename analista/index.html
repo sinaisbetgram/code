@@ -1,64 +1,99 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BetGram IA — Prompt de Futebol (Abrir no ChatGPT)</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Análise IA - Futebol</title>
 <style>
-  :root{--bg:#0b1324;--panel:#111827;--accent:#22c55e;--gold:gold}
-  html,body{margin:0;height:100%;background:var(--bg);color:#fff;font-family:"Roboto Mono",monospace}
-  .wrap{max-width:720px;margin:24px auto;padding:16px}
-  .card{background:rgba(17,24,39,.96);border:2px solid var(--gold);border-radius:12px;padding:18px;box-shadow:0 8px 40px rgba(0,0,0,.45)}
-  h1{margin:0 0 8px;text-align:center;color:var(--gold)}
-  p.muted{margin:6px 0 16px;text-align:center;color:#a3b2c6;font-size:13px}
-  label{display:block;margin-top:12px;margin-bottom:6px;color:var(--accent);font-weight:700}
-  input,select{width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:var(--panel);color:#fff;box-sizing:border-box;font-size:14px}
-  button{width:100%;padding:12px;margin-top:14px;border:0;border-radius:8px;font-weight:800;cursor:pointer;transition:.25s}
-  .btn-primary{background:linear-gradient(90deg,var(--accent),var(--gold));color:var(--bg)}
-  .btn-primary:hover{transform:scale(1.02);box-shadow:0 0 10px var(--gold)}
-  .btn-ghost{background:transparent;border:1px solid #334155;color:#fff}
-  #preview{margin-top:16px;background:var(--panel);border:1px dashed var(--gold);border-radius:8px;padding:12px;min-height:140px;white-space:pre-wrap;font-size:13px}
-  .warn{color:#fca5a5;font-weight:700}
-  @media (max-width:560px){.wrap{padding:10px} h1{font-size:20px}}
+  body {
+    background: #0b1324;
+    color: #fff;
+    font-family: monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+  }
+
+  h1 {
+    color: gold;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid gold;
+    border-radius: 10px;
+    padding: 20px;
+    width: 340px;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  }
+
+  label {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #ccc;
+  }
+
+  input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    margin-top: 4px;
+    background: #111827;
+    color: #fff;
+  }
+
+  button {
+    width: 100%;
+    margin-top: 20px;
+    padding: 10px;
+    background: gold;
+    color: #0b1324;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
+
+  button:hover {
+    background: #facc15;
+    transform: scale(1.03);
+  }
+
+  footer {
+    margin-top: 25px;
+    font-size: 12px;
+    color: #888;
+  }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>⚽ BetGram IA — Prompt de Futebol</h1>
-      <p class="muted">Preencha os campos e clique para abrir o ChatGPT com o prompt pronto.</p>
 
-      <label>🏅 Esporte</label>
-      <select id="esporte">
-        <option value="">Selecione</option>
-        <option value="Futebol">Futebol</option>
-        <!-- você pode adicionar outros esportes depois; nesta versão o fluxo abre link apenas para Futebol -->
-      </select>
+<h1>⚽ Gerador de Análise IA - Futebol</h1>
 
-      <label>⚔️ Confronto</label>
-      <input id="confronto" type="text" placeholder="Ex: Flamengo x Palmeiras">
+<div class="box">
+  <label>🏆 Confronto:</label>
+  <input type="text" id="confronto" placeholder="Ex: Flamengo x Palmeiras">
 
-      <label>🎯 Mercado (opcional)</label>
-      <input id="mercado" type="text" placeholder="Ex: escanteios, cartões, resultado exato... (deixe vazio para todos)">
+  <label>🎯 Mercado (opcional):</label>
+  <input type="text" id="mercado" placeholder="Ex: Escanteios, Ambas Marcam...">
 
-      <button id="abrir" class="btn-primary">🔗 Gerar prompt e abrir no ChatGPT</button>
-      <button id="mostrar" class="btn-ghost">👀 Mostrar/atualizar prompt (pré-visualização)</button>
+  <button onclick="gerarTxt()">Gerar e Baixar TXT</button>
+</div>
 
-      <div id="preview">📋 O prompt aparecerá aqui.</div>
-    </div>
-  </div>
+<footer>© 2025 Betgram - Inteligência IA de Apostas Esportivas</footer>
 
 <script>
-(function(){
-  const esporteEl   = document.getElementById('esporte');
-  const confrontoEl = document.getElementById('confronto');
-  const mercadoEl   = document.getElementById('mercado');
-  const previewEl   = document.getElementById('preview');
-  const abrirBtn    = document.getElementById('abrir');
-  const mostrarBtn  = document.getElementById('mostrar');
-
-  function promptFutebolTodos(confronto){
-    return `ChatGPT, analise todos os mercados de aposta disponíveis para o confronto ${confronto} no Futebol.
+// ====== Prompt completo de Futebol ======
+function promptFutebolCompleto(confronto) {
+return `ChatGPT, analise todos os mercados de aposta disponíveis para o confronto ${confronto} no Futebol.
 
 Considere os principais grupos de mercado:
 - Resultado Final (1X2, Dupla Chance, Empate Anula, Handicap Asiático e Europeu);
@@ -74,69 +109,47 @@ Para cada categoria, indique:
 4. Um mercado alternativo de valor, se existir.
 
 Finalize com um resumo destacando a aposta mais segura e a mais arriscada (alto potencial de retorno).`;
-  }
+}
 
-  function promptFutebolMercado(confronto, mercado){
-    return `ChatGPT, analise o mercado de ${mercado} para o confronto ${confronto} no Futebol.
+// ====== Prompt de mercado específico ======
+function promptFutebolMercado(confronto, mercado) {
+return `ChatGPT, analise o mercado de ${mercado} para o confronto ${confronto} no Futebol.
 Baseie-se em estatísticas históricas, estilo de jogo, tendência recente e contexto atual (mando, fase, competição).
+
 Indique:
 1. Qual o cenário mais provável dentro desse mercado;
 2. A odd mínima justa para representar valor;
 3. Uma recomendação de aposta e justificativa rápida;
 4. E se possível, um cenário alternativo com bom valor esperado.`;
+}
+
+// ====== Função principal ======
+function gerarTxt() {
+  const confronto = document.getElementById('confronto').value.trim();
+  const mercado = document.getElementById('mercado').value.trim();
+
+  if (!confronto) {
+    alert('Preencha o confronto (ex: Flamengo x Palmeiras).');
+    return;
   }
 
-  function gerarPromptAtual(){
-    const esporte  = (esporteEl.value || '').trim();
-    const confronto= (confrontoEl.value || '').trim();
-    const mercado  = (mercadoEl.value || '').trim();
-
-    if(!esporte || !confronto){
-      return { ok:false, texto:"⚠️ Preencha o esporte e o confronto." };
-    }
-
-    if(esporte.toLowerCase() !== 'futebol'){
-      return { ok:false, texto:"⚠️ Nesta versão o link automático está disponível apenas para Futebol." };
-    }
-
-    const texto = mercado
-      ? promptFutebolMercado(confronto, mercado)
-      : promptFutebolTodos(confronto);
-
-    return { ok:true, texto };
+  let texto;
+  if (mercado) {
+    texto = promptFutebolMercado(confronto, mercado);
+  } else {
+    texto = promptFutebolCompleto(confronto);
   }
 
-  function atualizarPreview(){
-    const res = gerarPromptAtual();
-    previewEl.textContent = res.texto;
-    if(!res.ok) previewEl.classList.add('warn'); else previewEl.classList.remove('warn');
-  }
+  const nomeArquivo = `analise_futebol_${confronto.toLowerCase().replace(/\s+/g, '_').replace(/x/g, 'x')}${mercado ? '_' + mercado.toLowerCase().replace(/\s+/g, '_') : ''}.txt`;
 
-  abrirBtn.addEventListener('click', () => {
-    const res = gerarPromptAtual();
-    previewEl.textContent = res.texto;
-    if(!res.ok) { previewEl.classList.add('warn'); return; }
-    previewEl.classList.remove('warn');
-
-    const url = "https://chat.openai.com/?q=" + encodeURIComponent(res.texto);
-    window.open(url, "_blank");
-  });
-
-  mostrarBtn.addEventListener('click', atualizarPreview);
-
-  // atualização de preview ao digitar (opcional)
-  [esporteEl, confrontoEl, mercadoEl].forEach(el => {
-    el.addEventListener('change', atualizarPreview);
-    el.addEventListener('input',  () => {
-      // debounce simples
-      clearTimeout(el.__t);
-      el.__t = setTimeout(atualizarPreview, 250);
-    });
-  });
-
-  // Preview inicial
-  atualizarPreview();
-})();
+  const blob = new Blob([texto], { type: 'text/plain' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = nomeArquivo;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
 </script>
+
 </body>
 </html>
