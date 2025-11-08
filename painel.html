@@ -3,213 +3,126 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel Betgram — Sinais com ID</title>
+<title>Painel Betgram — Resultado Manual</title>
 <style>
   body {
     background: #0b1324;
     color: #fff;
     font-family: monospace;
-    margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    overflow: hidden;
   }
 
   #painel {
-    position: relative;
     background: rgba(11,19,36,0.97);
     border: 2px solid gold;
     border-radius: 12px;
-    width: 90vw;
-    max-width: 360px;
-    max-height: 90vh;            /* 🔹 evita sair da tela */
-    overflow-y: auto;            /* 🔹 adiciona scroll se necessário */
-    padding: 15px;
-    box-shadow: 0 0 15px rgba(255,215,0,0.4);
+    padding: 20px;
     text-align: center;
-    box-sizing: border-box;
+    width: 280px;
   }
 
-  h3 {
-    margin-top: 0;
-    font-size: 16px;
+  h2 {
+    color: gold;
+    margin-bottom: 12px;
   }
 
-  input, button {
-    width: 100%;
-    margin-bottom: 8px;
-    border: none;
+  .botoes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  button {
+    background: #1e293b;
+    border: 1px solid gold;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+  }
+
+  button:hover {
+    background: gold;
+    color: #0b1324;
+  }
+
+  #mensagem {
+    background: #111827;
+    border: 1px dashed gold;
     border-radius: 6px;
     padding: 10px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 14px;
+    min-height: 50px;
+    white-space: pre-line;
+    margin-bottom: 10px;
   }
 
-  input[type="file"] {
-    background: #111827;
-    border: 1px solid #334155;
-    color: white;
+  #copiar {
+    background: #22c55e;
+    color: #fff;
+    border: none;
   }
 
-  button.risco { background: #facc15; color: #111; box-shadow: 0 0 6px rgba(250,204,21,0.6); }
-  button.conf { background: #22c55e; color: #fff; box-shadow: 0 0 6px rgba(34,197,94,0.6); }
-  button.alta { background: #3b82f6; color: #fff; box-shadow: 0 0 6px rgba(59,130,246,0.6); }
-  button.ver { background: #ef4444; color: #fff; box-shadow: 0 0 6px rgba(239,68,68,0.6); }
-  button.ok { background: #22c55e; color: white; width: 48%; }
-  button.erro { background: #ef4444; color: white; width: 48%; }
-
-  #status { font-size: 13px; margin-top: 6px; color: #9ca3af; word-wrap: break-word; }
+  #copiar:hover {
+    background: #16a34a;
+  }
 </style>
 </head>
 <body>
+  <div id="painel">
+    <h2>💰 Painel Betgram</h2>
 
-<div id="painel">
-  <h3>📤 Enviar Aposta</h3>
+    <div class="botoes">
+      <button onclick="setStake('0,5%')">0,5%</button>
+      <button onclick="setStake('1%')">1%</button>
+      <button onclick="setStake('2%')">2%</button>
+    </div>
 
-  <input type="file" id="uploadImg" accept="image/*">
+    <div class="botoes">
+      <button onclick="resultado('ganhei')">✅ Ganhei</button>
+      <button onclick="resultado('perdi')">❌ Perdi</button>
+    </div>
 
-  <button class="risco" id="btn05">⚠️ 0,5% Risco</button>
-  <button class="conf" id="btn1">💡 1% Confiança</button>
-  <button class="alta" id="btn2">🔥 2% Alta</button>
-  <button class="ver" id="btnVer">🔎 Ver Aposta</button>
-
-  <p id="status">🕓 Aguardando envio...</p>
-  <hr style="border:1px solid #334155;margin:8px 0;">
-
-  <label style="font-size:13px;">🧾 ID da mensagem:</label>
-  <input id="msgId" type="number" placeholder="Ex: 266">
-
-  <div style="display:flex;justify-content:space-between;">
-    <button class="ok" id="ganhei">✅ Ganhei</button>
-    <button class="erro" id="perdi">❌ Perdi</button>
+    <div id="mensagem">Mensagem aparecerá aqui...</div>
+    <button id="copiar" onclick="copiarMensagem()">📋 Copiar</button>
   </div>
-</div>
 
-<script>
-const token = "8389689778:AAFxqYCPj-w2M5hWhRxuXvRjhvc8zLw7Djw";
-const chatId = "-1003073897767";
-let sinais = JSON.parse(localStorage.getItem("sinaisBetgram") || "[]");
+  <script>
+    let stakeSelecionado = "";
 
-function salvar(id, caption) {
-  sinais.push({ id, caption, data: new Date().toLocaleString("pt-BR") });
-  localStorage.setItem("sinaisBetgram", JSON.stringify(sinais));
-}
-
-async function enviarImagem(textoBase) {
-  const input = document.getElementById("uploadImg");
-  const status = document.getElementById("status");
-  const msgIdInput = document.getElementById("msgId");
-  const arquivo = input.files[0];
-
-  if (!arquivo) {
-    alert("📎 Escolha uma imagem antes de enviar!");
-    return;
-  }
-
-  status.textContent = "⏳ Enviando...";
-  status.style.color = "#9ca3af";
-
-  try {
-    const form = new FormData();
-    form.append("chat_id", chatId);
-    form.append("photo", arquivo);
-    form.append("caption", "⏳ Enviando...");
-    form.append("parse_mode", "Markdown");
-
-    const resp = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
-      method: "POST",
-      body: form
-    });
-    const data = await resp.json();
-
-    if (data.ok) {
-      const msgId = data.result.message_id;
-      msgIdInput.value = msgId;
-
-      const legendaFinal = `📢 *Sinais BetGram — #${msgId}*\n${textoBase}`;
-      
-      await fetch(`https://api.telegram.org/bot${token}/editMessageCaption`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          message_id: msgId,
-          caption: legendaFinal,
-          parse_mode: "Markdown"
-        })
-      });
-
-      salvar(msgId, textoBase);
-      status.textContent = `✅ Enviado com sucesso! (ID ${msgId})`;
-      status.style.color = "#22c55e";
-
-      navigator.clipboard.writeText(msgId.toString()).then(() => {
-        console.log("📋 ID copiado:", msgId);
-      });
-
-    } else {
-      status.textContent = "❌ Erro: " + data.description;
-      status.style.color = "#ef4444";
+    function setStake(valor) {
+      stakeSelecionado = valor;
+      document.getElementById("mensagem").innerText = `🎯 Stake selecionada: ${valor}\nEscolha o resultado abaixo.`;
     }
-  } catch (e) {
-    status.textContent = "⚠️ Falha: " + e.message;
-    status.style.color = "#ef4444";
-  }
-}
 
-async function editarLegenda(id, novaLegenda) {
-  const status = document.getElementById("status");
-  if (!id) return alert("Digite o ID da mensagem!");
-
-  status.textContent = "✏️ Editando...";
-  try {
-    const legenda = `📢 *Sinais BetGram — #${id}*\n${novaLegenda}`;
-    const resp = await fetch(`https://api.telegram.org/bot${token}/editMessageCaption`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        message_id: parseInt(id),
-        caption: legenda,
-        parse_mode: "Markdown"
-      })
-    });
-    const data = await resp.json();
-    if (data.ok) {
-      status.textContent = "✅ Editado com sucesso!";
-      status.style.color = "#22c55e";
-    } else {
-      status.textContent = "❌ Erro ao editar: " + data.description;
-      status.style.color = "#ef4444";
+    function resultado(tipo) {
+      if (!stakeSelecionado) {
+        alert("Selecione uma stake antes de marcar resultado.");
+        return;
+      }
+      let msg = "";
+      if (tipo === "ganhei") {
+        msg = `✅ GREEN\n💰 +${stakeSelecionado} lucro\n\n#betgram #green`;
+      } else {
+        msg = `❌ RED\n💸 -${stakeSelecionado}\n\n#betgram #red`;
+      }
+      document.getElementById("mensagem").innerText = msg;
     }
-  } catch (err) {
-    status.textContent = "⚠️ Erro: " + err.message;
-    status.style.color = "#ef4444";
-  }
-}
 
-// === BOTÕES ===
-document.getElementById("btn05").onclick = () =>
-  enviarImagem("⚠️ *Entrada leve — 0,5% da banca.*\nOdd de valor, mas com risco.");
-
-document.getElementById("btn1").onclick = () =>
-  enviarImagem("💡 *Entrada padrão — 1% da banca.*\nConfiança moderada.");
-
-document.getElementById("btn2").onclick = () =>
-  enviarImagem("🔥 *Entrada forte — 2% da banca.*\nAlta confiança!");
-
-document.getElementById("btnVer").onclick = () =>
-  window.open("https://www.betano.bet.br/myaccount/bethistory/open", "_blank");
-
-document.getElementById("ganhei").onclick = () =>
-  editarLegenda(document.getElementById("msgId").value, "✅ *Aposta VENCIDA!* 🟢");
-
-document.getElementById("perdi").onclick = () =>
-  editarLegenda(document.getElementById("msgId").value, "❌ *Aposta PERDIDA!* 🔴");
-</script>
-
+    function copiarMensagem() {
+      const texto = document.getElementById("mensagem").innerText;
+      navigator.clipboard.writeText(texto).then(() => {
+        const btn = document.getElementById("copiar");
+        btn.innerText = "✅ Copiado!";
+        setTimeout(() => (btn.innerText = "📋 Copiar"), 2000);
+      });
+    }
+  </script>
 </body>
 </html>
