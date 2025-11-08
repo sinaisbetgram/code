@@ -1,7 +1,9 @@
 // prompts/futebol.js
-export function gerarPrompt(confronto, mercado, competicao) {
+export function gerarPrompt(confronto, mercado, competicao, odd) {
   if (mercado) {
     return `ChatGPT, analise o mercado de ${mercado} para o confronto ${confronto} no Futebol, válido pela competição ${competicao || 'não especificada'}.
+${odd ? `A odd oferecida é ${odd}. Avalie se essa odd representa bom valor ou está fora do ideal.` : ''}
+
 Baseie-se em estatísticas históricas, estilo de jogo, tendência recente e contexto atual (mando, fase, competição).
 Indique:
 1. Qual o cenário mais provável dentro desse mercado;
