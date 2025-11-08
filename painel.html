@@ -63,13 +63,6 @@
     margin-bottom: 10px;
   }
 
-  #nota {
-    color: #9ca3af;
-    font-size: 12px;
-    margin-top: -5px;
-    margin-bottom: 10px;
-  }
-
   #copiar {
     background: #22c55e;
     color: #fff;
@@ -91,8 +84,6 @@
       <button onclick="setStake('2%')">2%</button>
     </div>
 
-    <div id="nota">Selecione uma stake.</div>
-
     <div class="botoes">
       <button onclick="resultado('ganhei')">✅ Ganhei</button>
       <button onclick="resultado('perdi')">❌ Perdi</button>
@@ -107,14 +98,17 @@
 
     function setStake(valor) {
       stakeSelecionado = valor;
-      const nota = document.getElementById("nota");
+      let texto = "";
+
       if (valor === "0,5%") {
-        nota.innerText = "🟡 Entrada leve — teste de valor ou cenário incerto.";
+        texto = "🟡 Entrada leve — teste de valor ou cenário incerto.";
       } else if (valor === "1%") {
-        nota.innerText = "🟢 Entrada padrão — aposta equilibrada e sólida.";
+        texto = "🟢 Entrada padrão — aposta equilibrada e sólida.";
       } else if (valor === "2%") {
-        nota.innerText = "🔥 Entrada forte — aposta principal com alta convicção.";
+        texto = "🔥 Entrada forte — aposta principal com alta convicção.";
       }
+
+      document.getElementById("mensagem").innerText = texto;
     }
 
     function resultado(tipo) {
