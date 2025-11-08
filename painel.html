@@ -1,80 +1,147 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<title>Painel Betgram — Envio de Sinais</title>
-<style>
-  body { background:#0b1324; color:#fff; font-family:monospace; padding:20px; }
-  input, textarea { width:100%; background:#111827; color:#fff; border:2px solid gold; border-radius:8px; margin:5px 0; padding:8px; }
-  button { margin:5px; padding:8px 14px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; }
-  #enviar { background:#22c55e; color:#fff; }
-  table { width:100%; border-collapse:collapse; margin-top:15px; }
-  th, td { border:1px solid #334155; padding:6px; }
-  th { background:#1e293b; color:gold; }
-</style>
-</head>
-<body>
-<h2>📸 Painel Betgram — Envio de Sinais</h2>
+// === Painel Betgram — Envio + Edição Unificado (v4 Gold) ===
+(function painelBetgramCompleto() {
+  console.log("🏆 Painel Betgram Completo iniciado...");
 
-<label>URL da Imagem:</label>
-<input id="foto" placeholder="https://.../sinal.png">
+  if (document.getElementById("painelBetgramCompleto")) {
+    console.warn("⚠️ Painel já existe.");
+    return;
+  }
 
-<label>Legenda:</label>
-<textarea id="legenda" rows="3" placeholder="💡 Entrada padrão — 1% da banca."></textarea>
+  // === CONFIGURAÇÕES DO TELEGRAM ===
+  const token = "8389689778:AAFxqYCPj-w2M5hWhRxuXvRjhvc8zLw7Djw";
+  const chatId = "-1003073897767";
 
-<button id="enviar">🚀 Enviar Sinal</button>
-
-<h3>🧾 Sinais Enviados</h3>
-<table>
-  <thead><tr><th>ID</th><th>Legenda</th><th>Data</th></tr></thead>
-  <tbody id="lista"></tbody>
-</table>
-
-<script>
-const token = "8389689778:AAFxqYCPj-w2M5hWhRxuXvRjhvc8zLw7Djw";
-const chatId = "-1003073897767";
-let sinais = JSON.parse(localStorage.getItem("sinaisBetgram") || "[]");
-
-function salvar() {
-  localStorage.setItem("sinaisBetgram", JSON.stringify(sinais));
-  atualizarTabela();
-}
-
-function atualizarTabela() {
-  const tbody = document.getElementById("lista");
-  tbody.innerHTML = "";
-  sinais.forEach(s => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${s.id}</td>
-      <td>${s.caption}</td>
-      <td>${s.data}</td>
-    `;
-    tbody.appendChild(tr);
+  // === CRIAR PAINEL ===
+  const painel = document.createElement("div");
+  painel.id = "painelBetgramCompleto";
+  Object.assign(painel.style, {
+    position: "fixed",
+    bottom: "20px",
+    right: "20px",
+    width: "260px",
+    background: "rgba(11,19,36,0.97)",
+    border: "2px solid gold",
+    borderRadius: "12px",
+    color: "#fff",
+    fontFamily: "monospace",
+    padding: "10px",
+    zIndex: 999999,
+    boxShadow: "0 0 15px rgba(255,215,0,0.4)"
   });
-}
 
-async function enviar() {
-  const foto = document.getElementById("foto").value.trim();
-  const legenda = document.getElementById("legenda").value.trim();
-  if (!foto || !legenda) return alert("Preencha todos os campos!");
+  painel.innerHTML = `
+    <h3 style="margin:0 0 8px;font-size:15px;">📤 Enviar Aposta</h3>
+    <input type="file" id="uploadImg" accept="image/*"
+      style="width:100%;margin-bottom:10px;background:#111827;border:1px solid #334155;color:white;padding:4px;border-radius:6px;">
+    <button id="btn05" style="background:#facc15;border:none;border-radius:8px;color:#111;font-weight:bold;width:100%;padding:8px;margin-bottom:6px;cursor:pointer;">⚠️ 0,5% Risco</button>
+    <button id="btn1" style="background:#22c55e;border:none;border-radius:8px;color:white;font-weight:bold;width:100%;padding:8px;margin-bottom:6px;cursor:pointer;">💡 1% Confiança</button>
+    <button id="btn2" style="background:#3b82f6;border:none;border-radius:8px;color:white;font-weight:bold;width:100%;padding:8px;margin-bottom:6px;cursor:pointer;">🔥 2% Alta</button>
+    <button id="btnVer" style="background:#ef4444;border:none;border-radius:8px;color:white;font-weight:bold;width:100%;padding:8px;margin-bottom:6px;cursor:pointer;">🔎 Ver Aposta</button>
+    <p id="statusEnvio" style="font-size:12px;margin-top:6px;text-align:center;">🕓 Aguardando envio...</p>
+    <hr style="border:1px solid #334155;margin:8px 0;">
+    <label style="font-size:13px;">🧾 ID para editar:</label>
+    <input id="msgId" type="number" placeholder="Ex: 258" style="width:100%;margin-bottom:8px;background:#111827;border:1px solid #334155;color:white;padding:4px;border-radius:6px;">
+    <button id="ganhei" style="background:#22c55e;color:white;font-weight:bold;width:48%;padding:6px;border:none;border-radius:6px;cursor:pointer;">✅ Ganhei</button>
+    <button id="perdi" style="background:#ef4444;color:white;font-weight:bold;width:48%;padding:6px;border:none;border-radius:6px;cursor:pointer;">❌ Perdi</button>
+  `;
+  document.body.appendChild(painel);
 
-  const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({ chat_id:chatId, photo:foto, caption:legenda, parse_mode:"HTML" })
-  });
-  const data = await res.json();
-  if (data.ok) {
-    const id = data.result.message_id;
-    sinais.push({ id, caption:legenda, data:new Date().toLocaleString("pt-BR") });
-    salvar();
-    alert("✅ Sinal enviado! ID: "+id);
-  } else alert("❌ Erro ao enviar: " + data.description);
-}
+  const input = painel.querySelector("#uploadImg");
+  const status = painel.querySelector("#statusEnvio");
+  const msgIdInput = painel.querySelector("#msgId");
 
-document.getElementById("enviar").onclick = enviar;
-atualizarTabela();
-</script>
-</body>
-</html>
+  // === Salvar histórico local ===
+  const sinais = JSON.parse(localStorage.getItem("sinaisEnviados") || "[]");
+  function salvar(id, caption) {
+    sinais.push({ id, caption, data: new Date().toLocaleString("pt-BR") });
+    localStorage.setItem("sinaisEnviados", JSON.stringify(sinais));
+  }
+
+  // === Função para enviar imagem ===
+  async function enviarImagem(caption) {
+    const arquivo = input.files[0];
+    if (!arquivo) {
+      alert("📎 Selecione uma imagem antes de enviar!");
+      return;
+    }
+
+    status.textContent = "⏳ Enviando...";
+    status.style.color = "#9ca3af";
+
+    try {
+      const form = new FormData();
+      form.append("chat_id", chatId);
+      form.append("photo", arquivo);
+      form.append("caption", caption);
+      form.append("parse_mode", "Markdown");
+
+      const resp = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+        method: "POST",
+        body: form
+      });
+      const data = await resp.json();
+
+      if (data.ok) {
+        const msgId = data.result.message_id;
+        salvar(msgId, caption);
+        status.textContent = `✅ Enviado com sucesso! (ID ${msgId})`;
+        status.style.color = "#22c55e";
+        msgIdInput.value = msgId;
+      } else {
+        status.textContent = "❌ Erro: " + data.description;
+        status.style.color = "#ef4444";
+      }
+    } catch (e) {
+      status.textContent = "⚠️ Falha: " + e.message;
+      status.style.color = "#ef4444";
+    }
+  }
+
+  // === Função para editar mensagem ===
+  async function editarLegenda(id, novaLegenda) {
+    if (!id) return alert("Digite o ID da mensagem!");
+    status.textContent = "✏️ Editando...";
+    try {
+      const resp = await fetch(`https://api.telegram.org/bot${token}/editMessageCaption`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          message_id: parseInt(id),
+          caption: novaLegenda,
+          parse_mode: "Markdown"
+        })
+      });
+      const data = await resp.json();
+      if (data.ok) {
+        status.textContent = "✅ Editado com sucesso!";
+        status.style.color = "#22c55e";
+      } else {
+        status.textContent = "❌ Erro ao editar: " + data.description;
+        status.style.color = "#ef4444";
+      }
+    } catch (err) {
+      status.textContent = "⚠️ Erro: " + err.message;
+      status.style.color = "#ef4444";
+    }
+  }
+
+  // === Botões principais ===
+  painel.querySelector("#btn05").onclick = () =>
+    enviarImagem("⚠️ *Entrada leve — 0,5% da banca.*\nOdd de valor, mas com risco.");
+
+  painel.querySelector("#btn1").onclick = () =>
+    enviarImagem("💡 *Entrada padrão — 1% da banca.*\nConfiança moderada.");
+
+  painel.querySelector("#btn2").onclick = () =>
+    enviarImagem("🔥 *Entrada forte — 2% da banca.*\nAlta confiança!");
+
+  painel.querySelector("#btnVer").onclick = () =>
+    window.open("https://www.betano.bet.br/myaccount/bethistory/open", "_blank");
+
+  painel.querySelector("#ganhei").onclick = () =>
+    editarLegenda(msgIdInput.value, "✅ *Aposta VENCIDA!* 🟢");
+
+  painel.querySelector("#perdi").onclick = () =>
+    editarLegenda(msgIdInput.value, "❌ *Aposta PERDIDA!* 🔴");
+})();
