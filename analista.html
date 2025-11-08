@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Extrator de Odds Betano</title>
+<style>
+  body {
+    font-family: "Segoe UI", sans-serif;
+    background: #0b1324;
+    color: #fff;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 {
+    color: gold;
+    text-align: center;
+  }
+  #upload {
+    display: block;
+    margin: 20px auto;
+    background: #111827;
+    border: 2px dashed gold;
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    cursor: pointer;
+  }
+  pre {
+    background: #111827;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 15px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  button {
+    display: block;
+    margin: 20px auto;
+    background: gold;
+    border: none;
+    color: #111827;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #facc15;
+  }
+</style>
+</head>
+<body>
+<h1>🏆 Extrator de Odds Betano</h1>
+
+<label id="upload">
+  📂 Clique para carregar o arquivo HTML da Betano
+  <input type="file" id="fileInput" accept=".html,.htm,.txt" hidden />
+</label>
+
+<pre id="output">Aguardando upload do arquivo...</pre>
+<button id="downloadBtn" style="display:none;">💾 Baixar .txt</button>
+
+<script>
+  const fileInput = document.getElementById("fileInput");
+  const output = document.getElementById("output");
+  const downloadBtn = document.getElementById("downloadBtn");
+
+  fileInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    output.textContent = "🔍 Lendo arquivo...";
+
+    const text = await file.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, "text/html");
+
+    // Buscar blocos de mercado e odds
+    const mercados = [];
+    const oddsButtons = doc.querySelectorAll('[data-qa="odd-button"]');
+
+    oddsButtons.forEach((btn) => {
+      const mercadoEl = btn.closest('[data-qa="market-card"]') || btn.closest('[data-qa="market-group"]');
+      const mercadoNome = mercadoEl?.querySelector('[data-qa="market-name"]')?.textContent?.trim() || "Mercado desconhecido";
+
+      const opcao = btn.querySelector('[data-qa="odd-name"]')?.textContent?.trim() ||
+                    btn.querySelector("span")?.textContent?.trim() || "Opção";
+      const odd = btn.querySelector('[data-qa="odd-price"]')?.textContent?.trim() ||
+                  btn.textContent.match(/[0-9]+\.[0-9]+/)?.[0] || "";
+
+      if (odd) mercados.push({ mercado: mercadoNome, opcao, odd });
+    });
+
+    if (!mercados.length) {
+      output.textContent = "⚠️ Nenhuma odd encontrada. Tente salvar a página completa (Ctrl+S) e reenvie.";
+      return;
+    }
+
+    // Agrupar por mercado
+    const agrupado = {};
+    mercados.forEach(({ mercado, opcao, odd }) => {
+      if (!agrupado[mercado]) agrupado[mercado] = [];
+      agrupado[mercado].push({ opcao, odd });
+    });
+
+    // Gerar texto final
+    let txt = `📄 Odds extraídas da Betano\n\n`;
+    for (const [mercado, lista] of Object.entries(agrupado)) {
+      txt += `🏷️ Mercado: ${mercado}\n`;
+      lista.forEach((l) => {
+        txt += `• ${l.opcao}: ${l.odd}\n`;
+      });
+      txt += `\n`;
+    }
+
+    output.textContent = txt;
+    downloadBtn.style.display = "block";
+
+    // Função para baixar .txt
+    downloadBtn.onclick = () => {
+      const blob = new Blob([txt], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = (file.name.replace(/\..+$/, "") || "odds") + ".txt";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    };
+  });
+</script>
+</body>
+</html>
