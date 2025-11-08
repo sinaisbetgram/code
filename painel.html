@@ -89,7 +89,7 @@
       <button onclick="resultado('perdi')">❌ Perdi</button>
     </div>
 
-    <div id="mensagem">Mensagem aparecerá aqui...</div>
+    <div id="mensagem">Selecione o nível de confiança...</div>
     <button id="copiar" onclick="copiarMensagem()">📋 Copiar</button>
   </div>
 
@@ -98,7 +98,21 @@
 
     function setStake(valor) {
       stakeSelecionado = valor;
-      document.getElementById("mensagem").innerText = `🎯 Stake selecionada: ${valor}\nEscolha o resultado abaixo.`;
+      let descricao = "";
+
+      switch(valor) {
+        case "0,5%":
+          descricao = "🎯 Stake 0,5%\nNível de confiança: BAIXO ⚠️\n👉 Aposta de valor ou cenário de risco elevado.";
+          break;
+        case "1%":
+          descricao = "🎯 Stake 1%\nNível de confiança: MÉDIO ⚖️\n👉 Aposta equilibrada, boa leitura de jogo, mas ainda com incertezas.";
+          break;
+        case "2%":
+          descricao = "🎯 Stake 2%\nNível de confiança: ALTO ✅\n👉 Aposta forte, análise sólida e probabilidade elevada.";
+          break;
+      }
+
+      document.getElementById("mensagem").innerText = descricao + "\n\nAgora selecione o resultado abaixo.";
     }
 
     function resultado(tipo) {
