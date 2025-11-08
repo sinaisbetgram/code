@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-<title>BetGram IA — Gerador de Solicitações</title>
+<title>BetGram IA — Gerador de Link ChatGPT</title>
 <style>
   body {
     background: #0b1324;
     color: #fff;
-    font-family: 'Roboto Mono', monospace;
+    font-family: "Roboto Mono", monospace;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -23,9 +23,9 @@
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 0 12px gold;
+    text-align: center;
   }
   h1 {
-    text-align: center;
     color: gold;
     margin-bottom: 20px;
   }
@@ -34,10 +34,11 @@
     margin-top: 12px;
     font-weight: bold;
     color: #22c55e;
+    text-align: left;
   }
   input, select {
     width: 100%;
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #334155;
     border-radius: 8px;
     background: #111827;
@@ -47,7 +48,7 @@
   button {
     margin-top: 20px;
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     font-size: 16px;
     font-weight: bold;
     background: linear-gradient(90deg, #22c55e, gold);
@@ -69,13 +70,19 @@
     border: 1px dashed gold;
     font-size: 13px;
     white-space: pre-wrap;
-    min-height: 120px;
+    min-height: 100px;
+    text-align: left;
+  }
+  .muted {
+    color: #94a3b8;
+    font-size: 13px;
+    margin-top: 8px;
   }
 </style>
 </head>
 <body>
   <div id="app">
-    <h1>⚡ BetGram IA — Gerador de Arquivo</h1>
+    <h1>⚡ BetGram IA — Gerador de Link ChatGPT</h1>
 
     <label>🏅 Esporte:</label>
     <select id="esporte">
@@ -88,9 +95,10 @@
     <label>⚔️ Confronto:</label>
     <input type="text" id="confronto" placeholder="Ex: Tottenham x Manchester United">
 
-    <button id="gerar">💾 Gerar e Baixar .TXT</button>
+    <button id="gerar">🔗 Gerar Link e Abrir no ChatGPT</button>
 
-    <div id="preview">📋 O texto gerado aparecerá aqui antes do download.</div>
+    <div id="preview">📋 O texto do prompt aparecerá aqui.</div>
+    <div class="muted">💡 Após clicar, o ChatGPT abrirá já com o texto completo. Basta apertar Enter lá para gerar sua análise.</div>
   </div>
 
   <script>
@@ -100,7 +108,7 @@
       const preview = document.getElementById("preview");
 
       if (!esporte || !confronto) {
-        preview.innerText = "⚠️ Preencha o esporte e o confronto corretamente.";
+        preview.innerText = "⚠️ Preencha o esporte e o confronto antes.";
         return;
       }
 
@@ -110,16 +118,12 @@ para que seja uma aposta de valor (exemplo: 'esse mercado é bom se odd for acim
 
       preview.innerText = texto;
 
-      // cria e baixa o arquivo
-      const blob = new Blob([texto], { type: "text/plain;charset=utf-8" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      const nomeArquivo = "analise_" + confronto.replace(/\s+/g, "_").toLowerCase() + ".txt";
-      link.download = nomeArquivo;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
+      // gera link para ChatGPT com o texto pronto
+      const encoded = encodeURIComponent(texto);
+      const url = `https://chat.openai.com/?q=${encoded}`;
+
+      // abre ChatGPT com o texto preenchido
+      window.open(url, "_blank");
     });
   </script>
 </body>
