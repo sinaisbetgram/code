@@ -63,6 +63,13 @@
     margin-bottom: 10px;
   }
 
+  #nota {
+    color: #9ca3af;
+    font-size: 12px;
+    margin-top: -5px;
+    margin-bottom: 10px;
+  }
+
   #copiar {
     background: #22c55e;
     color: #fff;
@@ -84,12 +91,14 @@
       <button onclick="setStake('2%')">2%</button>
     </div>
 
+    <div id="nota">Selecione uma stake.</div>
+
     <div class="botoes">
       <button onclick="resultado('ganhei')">✅ Ganhei</button>
       <button onclick="resultado('perdi')">❌ Perdi</button>
     </div>
 
-    <div id="mensagem">Selecione o nível de confiança...</div>
+    <div id="mensagem">Mensagem aparecerá aqui...</div>
     <button id="copiar" onclick="copiarMensagem()">📋 Copiar</button>
   </div>
 
@@ -98,21 +107,14 @@
 
     function setStake(valor) {
       stakeSelecionado = valor;
-      let descricao = "";
-
-      switch(valor) {
-        case "0,5%":
-          descricao = "🎯 Stake 0,5%\nNível de confiança: BAIXO ⚠️\n👉 Aposta de valor ou cenário de risco elevado.";
-          break;
-        case "1%":
-          descricao = "🎯 Stake 1%\nNível de confiança: MÉDIO ⚖️\n👉 Aposta equilibrada, boa leitura de jogo, mas ainda com incertezas.";
-          break;
-        case "2%":
-          descricao = "🎯 Stake 2%\nNível de confiança: ALTO ✅\n👉 Aposta forte, análise sólida e probabilidade elevada.";
-          break;
+      const nota = document.getElementById("nota");
+      if (valor === "0,5%") {
+        nota.innerText = "🟡 Entrada leve — teste de valor ou cenário incerto.";
+      } else if (valor === "1%") {
+        nota.innerText = "🟢 Entrada padrão — aposta equilibrada e sólida.";
+      } else if (valor === "2%") {
+        nota.innerText = "🔥 Entrada forte — aposta principal com alta convicção.";
       }
-
-      document.getElementById("mensagem").innerText = descricao + "\n\nAgora selecione o resultado abaixo.";
     }
 
     function resultado(tipo) {
@@ -122,9 +124,9 @@
       }
       let msg = "";
       if (tipo === "ganhei") {
-        msg = `✅ GREEN\n💰 +${stakeSelecionado} lucro\n\n#betgram #green`;
+        msg = `✅ GREEN\n💰 Lucro de ${stakeSelecionado}\n\n#betgram #green`;
       } else {
-        msg = `❌ RED\n💸 -${stakeSelecionado}\n\n#betgram #red`;
+        msg = `❌ RED\n💸 Perda de ${stakeSelecionado}\n\n#betgram #red`;
       }
       document.getElementById("mensagem").innerText = msg;
     }
