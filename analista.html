@@ -3,16 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>BetGram IA — Gerador de Análises Inteligentes</title>
+<title>BetGram IA — Gerador de Análises Esportivas</title>
 <style>
-  :root {
-    --bg: #0b1324;
-    --panel: #111827;
-    --accent: #22c55e;
-    --gold: gold;
-  }
   body {
-    background: var(--bg);
+    background: #0b1324;
     color: #fff;
     font-family: "Roboto Mono", monospace;
     display: flex;
@@ -24,80 +18,27 @@
   #app {
     width: 100%;
     max-width: 650px;
-    background: rgba(17, 24, 39, 0.95);
-    border: 2px solid var(--gold);
+    background: rgba(17,24,39,0.95);
+    border: 2px solid gold;
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 0 12px var(--gold);
+    box-shadow: 0 0 12px gold;
   }
-  h1 {
-    text-align: center;
-    color: var(--gold);
-    margin-bottom: 16px;
-  }
-  label {
-    display: block;
-    margin-top: 12px;
-    font-weight: bold;
-    color: var(--accent);
-  }
-  input, select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #334155;
-    border-radius: 8px;
-    background: var(--panel);
-    color: #fff;
-    font-size: 14px;
+  h1 {text-align:center;color:gold;margin-bottom:16px;}
+  label {display:block;margin-top:12px;font-weight:bold;color:#22c55e;}
+  input,select {
+    width:100%;padding:10px;border:1px solid #334155;border-radius:8px;
+    background:#111827;color:#fff;font-size:14px;
   }
   button {
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s;
-    margin-top: 12px;
+    width:100%;padding:12px;font-size:16px;font-weight:bold;margin-top:12px;
+    border:none;border-radius:8px;cursor:pointer;
+    background:linear-gradient(90deg,#22c55e,gold);color:#0b1324;transition:0.3s;
   }
-  #abrir {
-    background: linear-gradient(90deg, var(--accent), var(--gold));
-    color: var(--bg);
-  }
-  #abrir:hover {
-    transform: scale(1.03);
-    box-shadow: 0 0 8px var(--gold);
-  }
-  #copiar {
-    background: transparent;
-    border: 1px solid var(--gold);
-    color: var(--gold);
-  }
-  #copiar:hover {
-    background: var(--gold);
-    color: var(--bg);
-  }
+  button:hover{transform:scale(1.03);box-shadow:0 0 8px gold;}
   #preview {
-    margin-top: 20px;
-    padding: 12px;
-    background: var(--panel);
-    border-radius: 8px;
-    border: 1px dashed var(--gold);
-    font-size: 13px;
-    white-space: pre-wrap;
-    min-height: 120px;
-  }
-  .muted {
-    color: #94a3b8;
-    font-size: 13px;
-    margin-top: 10px;
-  }
-  @media (max-width: 600px) {
-    body { padding: 10px; }
-    #app { padding: 16px; }
-    h1 { font-size: 20px; }
-    button { font-size: 15px; }
+    margin-top:20px;padding:12px;background:#111827;border-radius:8px;
+    border:1px dashed gold;font-size:13px;white-space:pre-wrap;min-height:120px;
   }
 </style>
 </head>
@@ -107,63 +48,45 @@
 
     <label>🏅 Esporte:</label>
     <select id="esporte">
-      <option>Futebol</option>
-      <option>Tênis</option>
-      <option>Basquete</option>
-      <option>Vôlei</option>
+      <option value="">Selecione</option>
+      <option value="futebol">Futebol</option>
+      <option value="tênis">Tênis</option>
+      <option value="basquete">Basquete</option>
+      <option value="vôlei">Vôlei</option>
     </select>
 
     <label>⚔️ Confronto:</label>
     <input type="text" id="confronto" placeholder="Ex: Flamengo x Palmeiras">
 
-    <button id="abrir">🔍 Gerar e Abrir no ChatGPT</button>
-    <button id="copiar">📋 Copiar Prompt</button>
+    <label>🎯 Mercado (opcional):</label>
+    <input type="text" id="mercado" placeholder="Ex: escanteios, cartões, resultado exato...">
 
-    <div id="preview">📋 Sua solicitação aparecerá aqui.</div>
-    <p class="muted">💡 Após clicar em “Gerar e Abrir no ChatGPT”, o ChatGPT abrirá já com o texto pronto.  
-Basta apertar Enter lá para obter a análise completa.  
-Use “Copiar Prompt” se quiser colar manualmente.</p>
+    <button id="gerar">🚀 Gerar Análise</button>
+
+    <div id="preview">📋 O prompt gerado aparecerá aqui.</div>
   </div>
 
   <script>
-    const esporte = document.getElementById("esporte");
-    const confronto = document.getElementById("confronto");
-    const preview = document.getElementById("preview");
-    const abrir = document.getElementById("abrir");
-    const copiar = document.getElementById("copiar");
+    document.getElementById("gerar").addEventListener("click", async () => {
+      const esporte = document.getElementById("esporte").value;
+      const confronto = document.getElementById("confronto").value.trim();
+      const mercado = document.getElementById("mercado").value.trim();
+      const preview = document.getElementById("preview");
 
-    function gerarTexto() {
-      const e = esporte.value.trim();
-      const c = confronto.value.trim();
-      if (!e || !c) {
-        preview.innerText = "⚠️ Preencha o esporte e o confronto corretamente.";
-        return null;
+      if (!esporte || !confronto) {
+        preview.innerText = "⚠️ Preencha o esporte e o confronto.";
+        return;
       }
 
-      const texto = `ChatGPT, analise todos os mercados entre ${c} no ${e}.
-Faça uma análise detalhada de probabilidades com base em dados históricos, estilo de jogo, desempenho recente e contexto (por exemplo, mando de campo, fase, tipo de competição ou superfície, se aplicável).
-Liste os mercados com maior probabilidade de acontecer e indique a odd mínima recomendada para que seja uma aposta de valor (por exemplo: “esse mercado é bom se odd for acima de 1.85”).
-Por fim, destaque uma aposta principal com breve justificativa, e se possível, aponte também um mercado alternativo de valor.`;
-
-      preview.innerText = texto;
-      return texto;
-    }
-
-    abrir.addEventListener("click", () => {
-      const texto = gerarTexto();
-      if (!texto) return;
-      const url = "https://chat.openai.com/?q=" + encodeURIComponent(texto);
-      window.open(url, "_blank");
-    });
-
-    copiar.addEventListener("click", async () => {
-      const texto = gerarTexto();
-      if (!texto) return;
-      try {
-        await navigator.clipboard.writeText(texto);
-        preview.innerText += "\n\n✅ Prompt copiado para a área de transferência!";
-      } catch {
-        preview.innerText += "\n\n⚠️ Não foi possível copiar automaticamente. Copie manualmente o texto acima.";
+      if (esporte === "futebol") {
+        const script = document.createElement("script");
+        script.src = "futebol.js";
+        script.onload = () => {
+          gerarPromptFutebol(confronto, mercado);
+        };
+        document.body.appendChild(script);
+      } else {
+        preview.innerText = "⚠️ Suporte completo disponível apenas para Futebol nesta versão.";
       }
     });
   </script>
