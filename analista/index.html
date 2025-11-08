@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Betgram IA - Gerador de Análises</title>
+<title>Betgram IA - Analisador Esportivo</title>
 <style>
   :root {
     --bg: #0b1324;
     --panel: rgba(255, 255, 255, 0.06);
-    --border: #22c55e; /* verde moderno */
+    --border: #22c55e;
     --text: #fff;
     --accent: #16a34a;
   }
@@ -76,10 +76,6 @@
     margin-top: 8px;
   }
 
-  .confronto input {
-    width: 100%;
-  }
-
   .x-sep {
     color: #fff;
     font-weight: bold;
@@ -114,12 +110,8 @@
   }
 
   @media (min-width: 768px) {
-    .box {
-      width: 70%;
-    }
-    h1 {
-      font-size: 2em;
-    }
+    .box { width: 70%; }
+    h1 { font-size: 2em; }
   }
 </style>
 </head>
@@ -141,7 +133,10 @@
     <option value="hockey">🏒 Hóquei</option>
   </select>
 
-  <label>🏆 Confronto:</label>
+  <label>🏆 Competição:</label>
+  <input type="text" id="competicao" placeholder="Ex: Brasileirão, Champions League, NBA...">
+
+  <label>🎮 Confronto:</label>
   <div class="confronto">
     <input type="text" id="timeA" placeholder="Time/Jogador A">
     <div class="x-sep">X</div>
@@ -157,10 +152,9 @@
 <footer>© 2025 Betgram - Inteligência IA Esportiva</footer>
 
 <script type="module">
-import * as futebol from './prompts/futebol.js';
-
 async function gerarPrompt() {
   const esporte = document.getElementById('esporte').value;
+  const competicao = document.getElementById('competicao').value.trim();
   const timeA = document.getElementById('timeA').value.trim();
   const timeB = document.getElementById('timeB').value.trim();
   const mercado = document.getElementById('mercado').value.trim();
@@ -171,17 +165,18 @@ async function gerarPrompt() {
   }
 
   const confronto = `${timeA} x ${timeB}`;
-  let prompt = '';
 
-  if (esporte === 'futebol') {
-    prompt = futebol.gerarPrompt(confronto, mercado);
-  } else {
+  try {
+    // carrega o módulo específico do esporte
+    const modulo = await import(`./prompts/${esporte}.js`);
+    const prompt = modulo.gerarPrompt(confronto, mercado, competicao);
+
+    const url = "https://chat.openai.com/?q=" + encodeURIComponent(prompt);
+    window.open(url, "_blank");
+  } catch (e) {
     alert(`⚠️ Esporte "${esporte}" ainda não configurado.`);
-    return;
+    console.error(e);
   }
-
-  const url = "https://chat.openai.com/?q=" + encodeURIComponent(prompt);
-  window.open(url, "_blank");
 }
 
 window.gerarPrompt = gerarPrompt;
