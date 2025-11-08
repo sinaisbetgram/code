@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gerador de Análise IA - Futebol</title>
+<title>Gerador Inteligente - Análise Futebol IA</title>
 <style>
   body {
     background: #0b1324;
@@ -19,8 +19,8 @@
 
   h1 {
     color: gold;
-    margin-bottom: 20px;
     text-align: center;
+    margin-bottom: 20px;
   }
 
   .box {
@@ -29,7 +29,7 @@
     border-radius: 10px;
     padding: 20px;
     width: 340px;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
   }
 
   label {
@@ -76,24 +76,42 @@
 </head>
 <body>
 
-<h1>⚽ Gerador de Análise IA - Futebol</h1>
+<h1>⚽ Analisador Inteligente - Futebol (IA)</h1>
 
 <div class="box">
   <label>🏆 Confronto:</label>
-  <input type="text" id="confronto" placeholder="Ex: Flamengo x Palmeiras">
+  <input type="text" id="confronto" placeholder="Ex: Alemanha x Brasil">
 
   <label>🎯 Mercado (opcional):</label>
   <input type="text" id="mercado" placeholder="Ex: Escanteios, Ambas Marcam...">
 
-  <button onclick="gerarTxt()">Gerar e Baixar TXT</button>
+  <button onclick="abrirNoChatGPT()">Analisar no ChatGPT 🚀</button>
 </div>
 
-<footer>© 2025 Betgram - Inteligência IA de Apostas Esportivas</footer>
+<footer>© 2025 Betgram - Inteligência IA Esportiva</footer>
 
 <script>
-// ====== Prompt completo de Futebol ======
-function promptFutebolCompleto(confronto) {
-return `ChatGPT, analise todos os mercados de aposta disponíveis para o confronto ${confronto} no Futebol.
+function abrirNoChatGPT() {
+  const confronto = document.getElementById('confronto').value.trim();
+  const mercado = document.getElementById('mercado').value.trim();
+
+  if (!confronto) {
+    alert('Preencha o confronto (ex: Alemanha x Brasil).');
+    return;
+  }
+
+  let prompt = "";
+
+  if (mercado) {
+    prompt = `ChatGPT, analise o mercado de ${mercado} para o confronto ${confronto} no Futebol.
+Baseie-se em estatísticas históricas, estilo de jogo, tendência recente e contexto atual (mando, fase, competição).
+Indique:
+1. Qual o cenário mais provável dentro desse mercado;
+2. A odd mínima justa para representar valor;
+3. Uma recomendação de aposta e justificativa rápida;
+4. E se possível, um cenário alternativo com bom valor esperado.`;
+  } else {
+    prompt = `ChatGPT, analise todos os mercados de aposta disponíveis para o confronto ${confronto} no Futebol.
 
 Considere os principais grupos de mercado:
 - Resultado Final (1X2, Dupla Chance, Empate Anula, Handicap Asiático e Europeu);
@@ -109,45 +127,11 @@ Para cada categoria, indique:
 4. Um mercado alternativo de valor, se existir.
 
 Finalize com um resumo destacando a aposta mais segura e a mais arriscada (alto potencial de retorno).`;
-}
-
-// ====== Prompt de mercado específico ======
-function promptFutebolMercado(confronto, mercado) {
-return `ChatGPT, analise o mercado de ${mercado} para o confronto ${confronto} no Futebol.
-Baseie-se em estatísticas históricas, estilo de jogo, tendência recente e contexto atual (mando, fase, competição).
-
-Indique:
-1. Qual o cenário mais provável dentro desse mercado;
-2. A odd mínima justa para representar valor;
-3. Uma recomendação de aposta e justificativa rápida;
-4. E se possível, um cenário alternativo com bom valor esperado.`;
-}
-
-// ====== Função principal ======
-function gerarTxt() {
-  const confronto = document.getElementById('confronto').value.trim();
-  const mercado = document.getElementById('mercado').value.trim();
-
-  if (!confronto) {
-    alert('Preencha o confronto (ex: Flamengo x Palmeiras).');
-    return;
   }
 
-  let texto;
-  if (mercado) {
-    texto = promptFutebolMercado(confronto, mercado);
-  } else {
-    texto = promptFutebolCompleto(confronto);
-  }
-
-  const nomeArquivo = `analise_futebol_${confronto.toLowerCase().replace(/\s+/g, '_').replace(/x/g, 'x')}${mercado ? '_' + mercado.toLowerCase().replace(/\s+/g, '_') : ''}.txt`;
-
-  const blob = new Blob([texto], { type: 'text/plain' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = nomeArquivo;
-  link.click();
-  URL.revokeObjectURL(link.href);
+  // Codifica e abre o ChatGPT com o texto pronto
+  const url = "https://chat.openai.com/?q=" + encodeURIComponent(prompt);
+  window.open(url, "_blank");
 }
 </script>
 
