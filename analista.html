@@ -1,121 +1,247 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gerador de Análise IA - Betgram</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>BetGram IA — Gerador de Análises (Protótipo)</title>
 <style>
-  body {
-    background: #0b1324;
-    color: #fff;
-    font-family: monospace;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    margin: 0;
+  :root{
+    --bg:#0b1324; --panel:#111827; --accent:#22c55e; --gold:gold;
   }
-
-  h1 {
-    color: gold;
-    margin-bottom: 20px;
-    text-align: center;
+  html,body{height:100%;margin:0;font-family:Inter, "Roboto Mono", monospace;background:var(--bg);color:#fff}
+  .container{max-width:900px;margin:28px auto;padding:20px}
+  .card{background:rgba(17,24,39,0.95);border:2px solid var(--gold);border-radius:12px;padding:18px;box-shadow:0 6px 30px rgba(0,0,0,.6)}
+  h1{margin:0 0 12px;text-align:center;color:var(--gold)}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  label{display:block;color:var(--accent);font-weight:700;margin-bottom:6px}
+  input[type="text"], input[type="password"], select, textarea{
+    width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:var(--panel);color:#fff;font-size:14px;box-sizing:border-box
   }
-
-  .box {
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid gold;
-    border-radius: 10px;
-    padding: 20px;
-    width: 320px;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-  }
-
-  label {
-    display: block;
-    margin-top: 10px;
-    font-size: 14px;
-    color: #ccc;
-  }
-
-  input {
-    width: 100%;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #333;
-    margin-top: 4px;
-    background: #111827;
-    color: #fff;
-  }
-
-  button {
-    width: 100%;
-    margin-top: 20px;
-    padding: 10px;
-    background: gold;
-    color: #0b1324;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-  }
-
-  button:hover {
-    background: #facc15;
-    transform: scale(1.03);
-  }
-
-  footer {
-    margin-top: 25px;
-    font-size: 12px;
-    color: #888;
-  }
+  .col{flex:1;min-width:220px}
+  button{cursor:pointer;border:0;padding:10px 14px;border-radius:8px;font-weight:700}
+  .btn-primary{background:linear-gradient(90deg,var(--accent), var(--gold));color:var(--bg)}
+  .btn-ghost{background:transparent;border:1px solid #334155;color:#fff}
+  #saida{margin-top:16px;background:var(--panel);border-radius:8px;padding:12px;min-height:220px;border:1px dashed var(--gold);white-space:pre-wrap;overflow:auto}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+  .small{font-size:13px;color:#cbd5e1}
+  .link{color:#93c5fd;text-decoration:underline;cursor:pointer}
+  /* overlay */
+  .overlay{position:fixed;inset:0;background:rgba(2,6,23,0.7);display:flex;align-items:center;justify-content:center;z-index:9999}
+  .modal{background:linear-gradient(180deg,#071022, #0f1724);border:2px solid var(--gold);padding:20px;border-radius:12px;width:92%;max-width:620px;color:#fff;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+  .modal h2{margin-top:0;color:var(--gold)}
+  .muted{color:#9ca3af;font-size:13px}
+  .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .footer{margin-top:14px;font-size:13px;color:#cbd5e1;text-align:center}
+  .danger{color:#fca5a5;font-weight:700}
+  .controls{display:flex;gap:8px;align-items:center}
 </style>
 </head>
 <body>
+  <div class="container">
+    <div class="card">
+      <h1>⚡ BetGram IA — Gerador de Análises (Protótipo)</h1>
 
-<h1>📋 Gerador de Análise IA - Betgram</h1>
+      <div class="topbar">
+        <div class="small">Insira sua própria OpenAI API Key — ela será usada localmente e salva somente no seu navegador.</div>
+        <div class="controls">
+          <button id="btnClearKey" class="btn-ghost" title="Remover key salva">Limpar key</button>
+        </div>
+      </div>
 
-<div class="box">
-  <label>🏅 Esporte:</label>
-  <input type="text" id="esporte" placeholder="Ex: Futebol, Basquete, Tênis...">
+      <div class="row" style="align-items:flex-end">
+        <div class="col">
+          <label>🏅 Esporte</label>
+          <select id="esporte">
+            <option>Futebol</option>
+            <option>Tênis</option>
+            <option>Basquete</option>
+            <option>Vôlei</option>
+            <option>Futebol Americano</option>
+          </select>
+        </div>
 
-  <label>⚔️ Times ou Jogadores:</label>
-  <input type="text" id="times" placeholder="Ex: Flamengo x Palmeiras">
+        <div class="col" style="flex:2">
+          <label>⚔️ Confronto (times / jogadores)</label>
+          <input id="confronto" type="text" placeholder="Ex: Tottenham x Manchester United — ou Djokovic x Nadal">
+        </div>
+      </div>
 
-  <button onclick="gerarTxt()">Gerar e Baixar TXT</button>
-</div>
+      <div style="margin-top:12px" class="row">
+        <div class="col">
+          <label>🔑 Sua OpenAI API Key</label>
+          <input id="apiKey" type="password" placeholder="Cole aqui sua key (ex: sk-... ) — será salva somente neste navegador">
+        </div>
+        <div style="min-width:180px;display:flex;flex-direction:column;gap:8px;justify-content:flex-end">
+          <label class="muted">Ações</label>
+          <button id="gerar" class="btn-primary">🔍 Gerar Análise IA</button>
+          <button id="baixarTxt" class="btn-ghost" title="Baixar análise atual">⬇️ Baixar .txt</button>
+        </div>
+      </div>
 
-<footer>© 2025 Betgram - Inteligência IA de Análise Esportiva</footer>
+      <div style="margin-top:12px" class="small">
+        Se ainda não tem key: gere em <a class="link" id="linkKeys" target="_blank" href="https://platform.openai.com/account/api-keys">platform.openai.com → API keys</a>.
+        <div class="muted" style="margin-top:6px">⚠️ Não compartilhe sua key publicamente. Use este protótipo localmente ou em área protegida.</div>
+      </div>
+
+      <div id="saida" aria-live="polite">
+        <div><b>💬 Aguardando solicitação...</b></div>
+        <div class="muted" style="margin-top:8px">Clique em "Gerar Análise IA" para executar.</div>
+      </div>
+
+      <div class="footer">
+        Protótipo — chave salva em <code>localStorage</code> no seu navegador. Para transformar em site público, peça a versão com backend seguro.
+      </div>
+    </div>
+  </div>
+
+  <!-- Instruction modal: appears on first load (or when user clears key) -->
+  <div id="overlay" class="overlay" style="display:none">
+    <div class="modal">
+      <h2>Informe sua OpenAI API Key</h2>
+      <p class="muted">Para o protótipo funcionar você precisa inserir sua própria API Key. Gere a key em:</p>
+      <p><a class="link" href="https://platform.openai.com/account/api-keys" target="_blank">https://platform.openai.com/account/api-keys</a></p>
+      <p class="muted">Cole a key no campo <b>"Sua OpenAI API Key"</b>. A key será salva apenas no seu navegador (localStorage) e usada para as chamadas à API.</p>
+      <div class="actions">
+        <button id="modalOpen" class="btn-primary">Inserir key agora</button>
+        <button id="modalClose" class="btn-ghost">Fechar (vou inserir depois)</button>
+      </div>
+      <p style="margin-top:10px" class="muted">Observação: NÃO cole aqui nem em sites públicos chaves que você não quer expor. Se pretende colocar isso em produção, recomendo versão com backend seguro.</p>
+    </div>
+  </div>
 
 <script>
-function gerarTxt() {
-  const esporte = document.getElementById('esporte').value.trim();
-  const times = document.getElementById('times').value.trim();
+(() => {
+  const keyStorageName = "betgram_api_key_v1";
+  const overlay = document.getElementById("overlay");
+  const apiKeyInput = document.getElementById("apiKey");
+  const confrontoInput = document.getElementById("confronto");
+  const esporteSelect = document.getElementById("esporte");
+  const saida = document.getElementById("saida");
+  const btnGerar = document.getElementById("gerar");
+  const btnClear = document.getElementById("btnClearKey");
+  const btnBaixar = document.getElementById("baixarTxt");
+  const modalOpen = document.getElementById("modalOpen");
+  const modalClose = document.getElementById("modalClose");
+  const linkKeys = document.getElementById("linkKeys");
 
-  if (!esporte || !times) {
-    alert('Preencha o esporte e os times/jogadores.');
-    return;
+  // open link in new tab (already target blank)
+  linkKeys.addEventListener("click", e => {/* noop */});
+
+  // show overlay if no key present
+  function checkKeyOnLoad(){
+    const k = localStorage.getItem(keyStorageName);
+    if(k && k.length>5){
+      apiKeyInput.value = k;
+      overlay.style.display = "none";
+    } else {
+      overlay.style.display = "flex";
+    }
   }
 
-  const texto = 
-`ChatGPT, analise todos os mercados entre ${times} no ${esporte}.
+  modalOpen.addEventListener("click", () => {
+    overlay.style.display = "none";
+    apiKeyInput.focus();
+  });
+  modalClose.addEventListener("click", () => {
+    overlay.style.display = "none";
+  });
+
+  // clear key
+  btnClear.addEventListener("click", () => {
+    if(confirm("Remover a API Key salva neste navegador?")) {
+      localStorage.removeItem(keyStorageName);
+      apiKeyInput.value = "";
+      alert("Key removida. Ao recarregar o site será solicitado inserir sua key novamente.");
+      overlay.style.display = "flex";
+    }
+  });
+
+  // save key on change (masked)
+  apiKeyInput.addEventListener("change", () => {
+    const k = apiKeyInput.value.trim();
+    if(k.length>0) localStorage.setItem(keyStorageName, k);
+  });
+
+  // Also save on input (so paste is stored)
+  apiKeyInput.addEventListener("input", () => {
+    const k = apiKeyInput.value.trim();
+    if(k.length>0) localStorage.setItem(keyStorageName, k);
+  });
+
+  // download txt
+  btnBaixar.addEventListener("click", () => {
+    const text = saida.innerText || saida.textContent;
+    const filename = (confrontoInput.value.trim() || "analise") + ".txt";
+    const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+    a.remove(); URL.revokeObjectURL(url);
+  });
+
+  // core: generate analysis using OpenAI API
+  btnGerar.addEventListener("click", async () => {
+    const key = apiKeyInput.value.trim() || localStorage.getItem(keyStorageName);
+    const confronto = confrontoInput.value.trim();
+    const esporte = esporteSelect.value;
+
+    if(!key || key.length<10){
+      alert("Cole sua OpenAI API Key no campo 'Sua OpenAI API Key' (veja o link para gerar uma).");
+      overlay.style.display = "flex";
+      return;
+    }
+    if(!confronto){ alert("Preencha o campo de confronto (ex: Tottenham x Manchester United)."); confrontoInput.focus(); return; }
+
+    // keep key saved
+    localStorage.setItem(keyStorageName, key);
+
+    saida.innerHTML = "⏳ Gerando análise IA... aguarde alguns segundos.\n\n(Use a key inserida por você — não a do dono do protótipo.)";
+
+    // build prompt (same format que você usa por txt)
+    const prompt = `ChatGPT, analise todos os mercados entre ${confronto} no ${esporte}.
 Identifique os mercados com maior probabilidade de acontecer e informe a odd mínima recomendada
-para que seja uma aposta de valor (exemplo: 'esse mercado é bom se odd for acima de 1.85').`;
+para que seja uma aposta de valor (exemplo: 'esse mercado é bom se odd for acima de 1.85').
+No final, destaque a melhor aposta IA com uma explicação breve.`;
 
-  const nomeArquivo = `analise_${esporte.toLowerCase().replace(/\s+/g, '_')}_${times.toLowerCase().replace(/\s+/g, '_').replace(/x/g, 'x')}.txt`;
+    try {
+      const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type":"application/json",
+          "Authorization":"Bearer " + key
+        },
+        body: JSON.stringify({
+          model: "gpt-5",
+          messages: [{role:"user", content: prompt}],
+          temperature: 0.8,
+          max_tokens: 1200
+        })
+      });
 
-  const blob = new Blob([texto], { type: 'text/plain' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = nomeArquivo;
-  link.click();
+      // parse
+      const data = await resp.json();
+      if(resp.status !== 200){
+        const err = data?.error?.message || JSON.stringify(data);
+        saida.innerText = "❌ Erro da API: " + err + "\n\nVerifique sua key ou se sua conta tem créditos e permissões.";
+        return;
+      }
+      const text = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || JSON.stringify(data);
+      // render with basic formatting
+      saida.innerHTML = "<b>✅ Análise gerada:</b>\n\n" + text;
+    } catch(err) {
+      saida.innerText = "❌ Falha ao conectar com a API: " + err.message;
+    }
+  });
 
-  URL.revokeObjectURL(link.href);
-}
+  // initialize
+  checkKeyOnLoad();
+
+  // optional: prefill with examples when user focuses confronto and it's empty
+  confrontoInput.addEventListener("focus", () => {
+    if(!confrontoInput.value) confrontoInput.placeholder = "Ex: Tottenham x Manchester United  — ou Djokovic x Nadal";
+  });
+
+})();
 </script>
-
 </body>
 </html>
