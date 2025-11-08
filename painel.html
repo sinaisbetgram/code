@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Painel Betgram — Envio e Edição</title>
+<title>Painel Betgram — Sinais com ID</title>
 <style>
   body {
     background: #0b1324;
@@ -58,7 +58,7 @@
   <p id="status">🕓 Aguardando envio...</p>
   <hr style="border:1px solid #334155;margin:8px 0;">
   <label style="font-size:13px;">🧾 ID da mensagem:</label>
-  <input id="msgId" type="number" placeholder="Ex: 258">
+  <input id="msgId" type="number" placeholder="Ex: 266">
   <div style="display:flex;justify-content:space-between;">
     <button class="ok" id="ganhei">✅ Ganhei</button>
     <button class="erro" id="perdi">❌ Perdi</button>
@@ -75,7 +75,7 @@ function salvar(id, caption) {
   localStorage.setItem("sinaisBetgram", JSON.stringify(sinais));
 }
 
-async function enviarImagem(caption) {
+async function enviarImagem(textoBase) {
   const input = document.getElementById("uploadImg");
   const status = document.getElementById("status");
   const msgIdInput = document.getElementById("msgId");
@@ -90,10 +90,11 @@ async function enviarImagem(caption) {
   status.style.color = "#9ca3af";
 
   try {
+    // Envia primeiro a imagem com legenda temporária
     const form = new FormData();
     form.append("chat_id", chatId);
     form.append("photo", arquivo);
-    form.append("caption", caption);
+    form.append("caption", "⏳ Enviando...");
     form.append("parse_mode", "Markdown");
 
     const resp = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
@@ -104,8 +105,24 @@ async function enviarImagem(caption) {
 
     if (data.ok) {
       const msgId = data.result.message_id;
-      salvar(msgId, caption);
       msgIdInput.value = msgId;
+
+      // Cria legenda final com o ID incluso
+      const legendaFinal = `📢 *Sinais BetGram — #${msgId}*\n${textoBase}`;
+      
+      // Edita a legenda da imagem para incluir o ID
+      await fetch(`https://api.telegram.org/bot${token}/editMessageCaption`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          message_id: msgId,
+          caption: legendaFinal,
+          parse_mode: "Markdown"
+        })
+      });
+
+      salvar(msgId, textoBase);
       status.textContent = `✅ Enviado com sucesso! (ID ${msgId})`;
       status.style.color = "#22c55e";
     } else {
@@ -124,13 +141,14 @@ async function editarLegenda(id, novaLegenda) {
 
   status.textContent = "✏️ Editando...";
   try {
+    const legenda = `📢 *Sinais BetGram — #${id}*\n${novaLegenda}`;
     const resp = await fetch(`https://api.telegram.org/bot${token}/editMessageCaption`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chat_id: chatId,
         message_id: parseInt(id),
-        caption: novaLegenda,
+        caption: legenda,
         parse_mode: "Markdown"
       })
     });
