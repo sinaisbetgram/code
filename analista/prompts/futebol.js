@@ -1,16 +1,15 @@
 // prompts/futebol.js
-export function gerarPrompt(confronto, mercado) {
+export function gerarPrompt(confronto, mercado, competicao) {
   if (mercado) {
-    return `ChatGPT, analise o mercado de ${mercado} para o confronto ${confronto} no Futebol.
+    return `ChatGPT, analise o mercado de ${mercado} para o confronto ${confronto} no Futebol, válido pela competição ${competicao || 'não especificada'}.
 Baseie-se em estatísticas históricas, estilo de jogo, tendência recente e contexto atual (mando, fase, competição).
-
 Indique:
 1. Qual o cenário mais provável dentro desse mercado;
 2. A odd mínima justa para representar valor;
 3. Uma recomendação de aposta e justificativa rápida;
 4. E se possível, um cenário alternativo com bom valor esperado.`;
   } else {
-    return `ChatGPT, analise todos os mercados de aposta disponíveis para o confronto ${confronto} no Futebol.
+    return `ChatGPT, analise todos os mercados de aposta disponíveis para o confronto ${confronto} no Futebol, válido pela competição ${competicao || 'não especificada'}.
 
 Considere os principais grupos de mercado:
 - Resultado Final (1X2, Dupla Chance, Empate Anula, Handicap Asiático e Europeu);
