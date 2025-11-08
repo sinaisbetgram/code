@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gerador Inteligente - Análise Futebol IA</title>
+<title>Gerador de Análises IA - Betgram</title>
 <style>
   body {
     background: #0b1324;
@@ -19,8 +19,8 @@
 
   h1 {
     color: gold;
-    text-align: center;
     margin-bottom: 20px;
+    text-align: center;
   }
 
   .box {
@@ -39,7 +39,7 @@
     color: #ccc;
   }
 
-  input {
+  select, input {
     width: 100%;
     padding: 8px;
     border-radius: 6px;
@@ -76,62 +76,53 @@
 </head>
 <body>
 
-<h1>⚽ Analisador Inteligente - Futebol (IA)</h1>
+<h1>🎯 Gerador de Análises IA - Betgram</h1>
 
 <div class="box">
+  <label>🏅 Esporte:</label>
+  <select id="esporte">
+    <option value="futebol">⚽ Futebol</option>
+    <option value="basquete">🏀 Basquete</option>
+    <option value="tenis">🎾 Tênis</option>
+    <option value="volei">🏐 Vôlei</option>
+    <option value="mma">🥊 MMA / Luta</option>
+    <option value="formula1">🏎️ Fórmula 1</option>
+  </select>
+
   <label>🏆 Confronto:</label>
   <input type="text" id="confronto" placeholder="Ex: Alemanha x Brasil">
 
   <label>🎯 Mercado (opcional):</label>
   <input type="text" id="mercado" placeholder="Ex: Escanteios, Ambas Marcam...">
 
-  <button onclick="abrirNoChatGPT()">Analisar no ChatGPT 🚀</button>
+  <button onclick="gerarPrompt()">Analisar no ChatGPT 🚀</button>
 </div>
 
 <footer>© 2025 Betgram - Inteligência IA Esportiva</footer>
 
 <script>
-function abrirNoChatGPT() {
+// ======= Função principal =======
+async function gerarPrompt() {
+  const esporte = document.getElementById('esporte').value;
   const confronto = document.getElementById('confronto').value.trim();
   const mercado = document.getElementById('mercado').value.trim();
 
   if (!confronto) {
-    alert('Preencha o confronto (ex: Alemanha x Brasil).');
+    alert('Preencha o confronto.');
     return;
   }
 
-  let prompt = "";
+  try {
+    // Carrega o script do esporte dinamicamente
+    const modulo = await import(`./prompts/${esporte}.js`);
+    const prompt = modulo.gerarPrompt(confronto, mercado);
 
-  if (mercado) {
-    prompt = `ChatGPT, analise o mercado de ${mercado} para o confronto ${confronto} no Futebol.
-Baseie-se em estatísticas históricas, estilo de jogo, tendência recente e contexto atual (mando, fase, competição).
-Indique:
-1. Qual o cenário mais provável dentro desse mercado;
-2. A odd mínima justa para representar valor;
-3. Uma recomendação de aposta e justificativa rápida;
-4. E se possível, um cenário alternativo com bom valor esperado.`;
-  } else {
-    prompt = `ChatGPT, analise todos os mercados de aposta disponíveis para o confronto ${confronto} no Futebol.
-
-Considere os principais grupos de mercado:
-- Resultado Final (1X2, Dupla Chance, Empate Anula, Handicap Asiático e Europeu);
-- Gols (Mais/Menos, Ambas Marcam, Gol nos Tempos, Resultado Exato, Time para Marcar);
-- Escanteios (Total, Handicap, por Equipe, por Tempo);
-- Cartões (Total, por Time, Jogador Receber, Cartão Vermelho);
-- Especiais e Intermediários (HT/FT, Primeiro Gol, Marcar 2+, Intervalo/Final).
-
-Para cada categoria, indique:
-1. Qual mercado tem maior probabilidade de acontecer;
-2. Qual seria a odd mínima recomendada para representar valor esperado positivo;
-3. Uma aposta principal com justificativa (baseada em desempenho recente, estilo de jogo, momento e estatísticas médias);
-4. Um mercado alternativo de valor, se existir.
-
-Finalize com um resumo destacando a aposta mais segura e a mais arriscada (alto potencial de retorno).`;
+    const url = "https://chat.openai.com/?q=" + encodeURIComponent(prompt);
+    window.open(url, "_blank");
+  } catch (e) {
+    alert("⚠️ Esporte ainda não configurado: " + esporte);
+    console.error(e);
   }
-
-  // Codifica e abre o ChatGPT com o texto pronto
-  const url = "https://chat.openai.com/?q=" + encodeURIComponent(prompt);
-  window.open(url, "_blank");
 }
 </script>
 
