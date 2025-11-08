@@ -2,34 +2,39 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel Betgram — Sinais com ID</title>
 <style>
   body {
     background: #0b1324;
     color: #fff;
     font-family: monospace;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    margin: 0;
   }
   #painel {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
     background: rgba(11,19,36,0.97);
     border: 2px solid gold;
     border-radius: 12px;
-    width: 280px;
+    width: 90vw;             /* 🔹 ocupa 90% da tela no mobile */
+    max-width: 360px;        /* 🔹 limite no desktop */
     padding: 15px;
     box-shadow: 0 0 15px rgba(255,215,0,0.4);
     text-align: center;
+    box-sizing: border-box;
+    z-index: 99999;
   }
   input, button {
     width: 100%;
     margin-bottom: 8px;
     border: none;
     border-radius: 6px;
-    padding: 8px;
+    padding: 10px;
     font-weight: bold;
     cursor: pointer;
+    font-size: 14px;
   }
   input[type="file"] {
     background: #111827;
@@ -42,13 +47,13 @@
   button.ver { background: #ef4444; color: #fff; box-shadow: 0 0 6px rgba(239,68,68,0.6); }
   button.ok { background: #22c55e; color: white; width: 48%; }
   button.erro { background: #ef4444; color: white; width: 48%; }
-  #status { font-size: 12px; margin-top: 6px; color: #9ca3af; }
+  #status { font-size: 13px; margin-top: 6px; color: #9ca3af; word-wrap: break-word; }
 </style>
 </head>
 <body>
 
 <div id="painel">
-  <h3>📤 Enviar Aposta</h3>
+  <h3 style="margin-top:0;">📤 Enviar Aposta</h3>
   <input type="file" id="uploadImg" accept="image/*">
   <button class="risco" id="btn05">⚠️ 0,5% Risco</button>
   <button class="conf" id="btn1">💡 1% Confiança</button>
@@ -90,7 +95,6 @@ async function enviarImagem(textoBase) {
   status.style.color = "#9ca3af";
 
   try {
-    // Envia primeiro a imagem com legenda temporária
     const form = new FormData();
     form.append("chat_id", chatId);
     form.append("photo", arquivo);
@@ -107,10 +111,8 @@ async function enviarImagem(textoBase) {
       const msgId = data.result.message_id;
       msgIdInput.value = msgId;
 
-      // Cria legenda final com o ID incluso
       const legendaFinal = `📢 *Sinais BetGram — #${msgId}*\n${textoBase}`;
       
-      // Edita a legenda da imagem para incluir o ID
       await fetch(`https://api.telegram.org/bot${token}/editMessageCaption`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -125,6 +127,12 @@ async function enviarImagem(textoBase) {
       salvar(msgId, textoBase);
       status.textContent = `✅ Enviado com sucesso! (ID ${msgId})`;
       status.style.color = "#22c55e";
+
+      // Copia automaticamente o ID
+      navigator.clipboard.writeText(msgId.toString()).then(() => {
+        console.log("📋 ID copiado:", msgId);
+      });
+
     } else {
       status.textContent = "❌ Erro: " + data.description;
       status.style.color = "#ef4444";
