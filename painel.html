@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel Betgram — Envio de Sinais</title>
+<style>
+  body { background:#0b1324; color:#fff; font-family:monospace; padding:20px; }
+  input, textarea { width:100%; background:#111827; color:#fff; border:2px solid gold; border-radius:8px; margin:5px 0; padding:8px; }
+  button { margin:5px; padding:8px 14px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; }
+  #enviar { background:#22c55e; color:#fff; }
+  table { width:100%; border-collapse:collapse; margin-top:15px; }
+  th, td { border:1px solid #334155; padding:6px; }
+  th { background:#1e293b; color:gold; }
+</style>
+</head>
+<body>
+<h2>📸 Painel Betgram — Envio de Sinais</h2>
+
+<label>URL da Imagem:</label>
+<input id="foto" placeholder="https://.../sinal.png">
+
+<label>Legenda:</label>
+<textarea id="legenda" rows="3" placeholder="💡 Entrada padrão — 1% da banca."></textarea>
+
+<button id="enviar">🚀 Enviar Sinal</button>
+
+<h3>🧾 Sinais Enviados</h3>
+<table>
+  <thead><tr><th>ID</th><th>Legenda</th><th>Data</th></tr></thead>
+  <tbody id="lista"></tbody>
+</table>
+
+<script>
+const token = "8389689778:AAFxqYCPj-w2M5hWhRxuXvRjhvc8zLw7Djw";
+const chatId = "-1003073897767";
+let sinais = JSON.parse(localStorage.getItem("sinaisBetgram") || "[]");
+
+function salvar() {
+  localStorage.setItem("sinaisBetgram", JSON.stringify(sinais));
+  atualizarTabela();
+}
+
+function atualizarTabela() {
+  const tbody = document.getElementById("lista");
+  tbody.innerHTML = "";
+  sinais.forEach(s => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${s.id}</td>
+      <td>${s.caption}</td>
+      <td>${s.data}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function enviar() {
+  const foto = document.getElementById("foto").value.trim();
+  const legenda = document.getElementById("legenda").value.trim();
+  if (!foto || !legenda) return alert("Preencha todos os campos!");
+
+  const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ chat_id:chatId, photo:foto, caption:legenda, parse_mode:"HTML" })
+  });
+  const data = await res.json();
+  if (data.ok) {
+    const id = data.result.message_id;
+    sinais.push({ id, caption:legenda, data:new Date().toLocaleString("pt-BR") });
+    salvar();
+    alert("✅ Sinal enviado! ID: "+id);
+  } else alert("❌ Erro ao enviar: " + data.description);
+}
+
+document.getElementById("enviar").onclick = enviar;
+atualizarTabela();
+</script>
+</body>
+</html>
